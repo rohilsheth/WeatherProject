@@ -1,0 +1,209 @@
+package com.example.a10011878.weatherproject;
+
+import android.os.AsyncTask;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+
+public class MainActivity extends AppCompatActivity {
+    String json;
+    JSONObject root;
+    TextView t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,tbig,t10,t11,t12,t13,t14,tdesc;
+    Button b1;
+    ImageView i0,i1,i2,i3,i4,imagebig;
+    ArrayList<TextView> times, max, min;
+    ArrayList<ImageView> images;
+    ArrayList<Integer> ID;
+    ArrayList<String> cond, quotes;
+    EditText zipCode;
+    String apiReq;
+    String zip;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        t0 = (TextView) findViewById(R.id.textView0);
+        t1 = (TextView) findViewById(R.id.textView1);
+        t2 = (TextView) findViewById(R.id.textView2);
+        t3 = (TextView) findViewById(R.id.textView3);
+        t4 = (TextView) findViewById(R.id.textView4);
+        t5 = (TextView) findViewById(R.id.textView5);
+        t6 = (TextView) findViewById(R.id.textView6);
+        t7 = (TextView) findViewById(R.id.textView7);
+        t8 = (TextView) findViewById(R.id.textView8);
+        t9 = (TextView) findViewById(R.id.textView9);
+        t10 = (TextView) findViewById(R.id.textView10);
+        t11 = (TextView) findViewById(R.id.textView12);
+        t12 = (TextView) findViewById(R.id.textView13);
+        t13 = (TextView) findViewById(R.id.textView14);
+        t14 = (TextView) findViewById(R.id.textView11);
+        i0 = (ImageView) findViewById(R.id.imageView);
+        i1 = (ImageView) findViewById(R.id.imageView2);
+        i2 = (ImageView) findViewById(R.id.imageView4);
+        i3 = (ImageView) findViewById(R.id.imageView5);
+        i4 = (ImageView) findViewById(R.id.imageView6);
+        tbig = (TextView) findViewById(R.id.textView);
+        tdesc = (TextView) findViewById(R.id.textView15);
+        imagebig = (ImageView) findViewById(R.id.imageView3);
+        b1 = (Button) findViewById(R.id.button);
+        json = "";
+        zipCode = (EditText) findViewById(R.id.editText);
+        times = new ArrayList<>();
+        times.add(t10);
+        times.add(t11);
+        times.add(t12);
+        times.add(t13);
+        times.add(t14);
+        max = new ArrayList<>();
+        max.add(t5);
+        max.add(t6);
+        max.add(t7);
+        max.add(t8);
+        max.add(t9);
+        min= new ArrayList<>();
+        min.add(t0);
+        min.add(t1);
+        min.add(t2);
+        min.add(t3);
+        min.add(t4);
+        images = new ArrayList<>();
+        images.add(i0);
+        images.add(i1);
+        images.add(i2);
+        images.add(i3);
+        images.add(i4);
+        ID = new ArrayList<>();
+        ID.add(R.drawable.rain);
+        ID.add(R.drawable.clear);
+        ID.add(R.drawable.clouds);
+        ID.add(R.drawable.snow);
+        ID.add(R.drawable.thunderstorm);
+        cond = new ArrayList<>();
+        cond.add("Rain");
+        cond.add("Clear");
+        cond.add("Clouds");
+        cond.add("Snow");
+        cond.add("Thunderstorm");
+        quotes = new ArrayList<>();
+        quotes.add("The rain is dark and full of terrors.");
+        quotes.add("The only good thing about Kings Landing...the sunny weather");
+        quotes.add("Aye, Queen Targaryen, it's cloudy outside. The dragons can't see.");
+        quotes.add("Winter is coming...");
+        quotes.add("The dragons must be angry...there's thunder.");
+        zip = "08852";
+        apiReq = "http://api.openweathermap.org/data/2.5/forecast?zip=08852&appid=6714d1648b1dd0d0e05fabce6145d2ba";
+        final AsyncThread thread = new AsyncThread();
+        thread.execute(zip);
+        zipCode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                zipCode.setText("");
+            }
+        });
+        b1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                zip = zipCode.getText()+"";
+                AsyncThread thread1 = new AsyncThread();
+                thread.cancel(true);
+                thread1.execute(zip);
+            }
+        });
+
+    }
+
+    public class AsyncThread extends AsyncTask<String,Void,Void> {
+        @Override
+        protected Void doInBackground(String... zipnum) {
+            String tempZip = zipnum[0];
+            try {
+                apiReq = "http://api.openweathermap.org/data/2.5/forecast?zip="+tempZip+"&appid=6714d1648b1dd0d0e05fabce6145d2ba";
+                URL url = new URL(apiReq);
+                URLConnection urlConnection = url.openConnection();
+                InputStream stream = urlConnection.getInputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+                String line;
+                json = "";
+                while ((line = reader.readLine()) != null) {
+                    json +=line;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            try {
+                for (int i=0; i<5;i++) {
+                    root = new JSONObject(json);
+
+                    JSONArray findlist = root.getJSONArray("list");
+                    JSONObject findTime = findlist.getJSONObject(i);
+                    JSONObject findMain = findTime.getJSONObject("main");
+                    Long epoch = Long.parseLong(findTime.get("dt")+"");
+                    int date = Integer.parseInt(new java.text.SimpleDateFormat("HH").format(new java.util.Date (epoch*1000)));
+                    if (date ==12)
+                        times.get(i).setText(date+ " PM");
+                    if (date ==0)
+                        times.get(i).setText("12 AM");
+                    if (date>12) {
+                        int setDate = date % 12;
+                        times.get(i).setText(setDate+" PM");
+                    }
+                    else if (date < 12) {
+                        int setDate = date % 12;
+                        times.get(i).setText(setDate+" AM");
+                    }
+                    JSONArray findWeather = findTime.getJSONArray("weather");
+                    JSONObject weatherParse = findWeather.getJSONObject(0);
+                    double findTempMin = (double)findMain.get("temp_min");
+                    Log.d("TAG",findTempMin+"min"+i+"");
+                    double findTempMax = (double)findMain.get("temp_max");
+                    Log.d("TAG",findTempMax+"max"+i+"");
+                    double findTemp = (double)findMain.get("temp");
+                    Log.d("TAG",findTemp+"cur"+i+"");
+                    String findPic = (String) weatherParse.get("main");
+                    int tempmin = (int) ( ((1.8)*(findTempMin - 273.15))+32);
+                    int tempmax = (int) ( ((1.8)*(findTempMax - 273.15))+32);
+                    int temp = (int) ( ((1.8)*(findTemp - 273.15))+32);
+                    Log.d("var",temp+"");
+                    max.get(i).setText(tempmax+"°F");
+                    min.get(i).setText(tempmin+"°F");
+                    int num = cond.indexOf(findPic);
+                    images.get(i).setImageResource(ID.get(num));
+                    if (i==0) {
+                        tbig.setText(temp + "°F");
+                        imagebig.setImageResource(ID.get(num));
+                        tdesc.setText(quotes.get(num));
+                    }
+
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            super.onPostExecute(aVoid);
+        }
+    }
+}
